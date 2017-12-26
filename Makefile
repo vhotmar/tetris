@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	mkdir ./build
+	mkdir -p ./build
 	fpc application.pas
 
 .PHONY: clean
