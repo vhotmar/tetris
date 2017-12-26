@@ -25,12 +25,16 @@ type
     FSDLRenderer: PSDL_Renderer;
     FSDLEvent: PSDL_Event;
 
+    { Get Error from SDL and print it to console }
     procedure ProcessSDLError(m: string);
+
+    { Draw the state }
     procedure Draw();
 
   public
     destructor Destroy; override;
 
+    { Initialize window and SDL context }
     procedure Init(c: TConfig);
     procedure Run();
 
@@ -47,16 +51,20 @@ procedure TSDLWindow.Init(c: TConfig);
 begin
   FConfig := c;
 
+  { Init SDL and Game }
   if SDL_Init(SDL_INIT_VIDEO) < 0 then ProcessSDLError('SDL_Init');
 
   FGame := TGame.Create(c, SDL_GetTicks());
 
+  { Create SDL window }
   FSDLWindow := SDL_CreateWindow('Tetris', 50, 50, FConfig.WindowWidth, FConfig.WindowHeight, SDL_WINDOW_SHOWN);
   if FSDLWindow = nil then ProcessSDLError('SDL_CreateWindow');
 
+  { Create SDL renderer }
   FSDLRenderer := SDL_CreateRenderer(FSDLWindow, -1, SDL_RENDERER_ACCELERATED);
   if FSDLRenderer = nil then ProcessSDLError('SDL_CreateRenderer');
 
+  { Init pointer to SDL event (usde in Update) }
   new(FSDLEvent);
 
   FInitialized := true;
@@ -72,6 +80,7 @@ end;
 procedure TSDLWindow.Draw();
 var boxSize, totalWidth, totalHeight, xPosition, yPosition, borderLeft, borderRight, borderBottom, borderTop, borderWidth, i, j: integer;
 
+{ Function to draw box with border rgb1 is for border, rgb2 is for background }
 procedure DrawBox(x, y, r1, g1, b1, r2, g2, b2: integer);
 begin
   boxRGBA(FSDLRenderer, xPosition + x * boxSize, yPosition + y * boxSize, xPosition + (x + 1) * boxSize, yPosition + (y + 1) * boxSize, r1, g1, b1, 255);
@@ -82,6 +91,7 @@ begin
   SDL_SetRenderDrawColor(FSDLRenderer, 0, 0, 0, 255);
   SDL_RenderClear(FSDLRenderer);
 
+  { Helper values for borders etc. }
   borderWidth := 5;
 
   boxSize := (FConfig.WindowHeight - 40) div FConfig.Height;
@@ -95,38 +105,31 @@ begin
   borderBottom := yPosition + totalHeight + borderWidth;
   borderTop := yPosition - borderWidth; 
 
-  // Left
+  { Draw borders }
+  { Left }
   boxRGBA(FSDLRenderer, borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 190, 0, 255);
-  // Top
+  { Top }
   boxRGBA(FSDLRenderer, borderLeft, borderTop, borderRight, borderTop + 5, 0, 190, 0, 255);
-  // Bottom
+  { Bottom }
   boxRGBA(FSDLRenderer, borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 190, 0, 255);
-  // Right
+  {  }
   boxRGBA(FSDLRenderer, borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 190, 0, 255);
 
+  { Draw grid and filled blocks }
   for i := 0 to (FConfig.Width - 1) do
-  begin
     for j := 0 to (FConfig.Height - 1) do
-    begin
-      DrawBox(i, j, 30, 30, 30, 0, 0, 0);
       if FGame.GetBoard().IsEmpty(i, j, true) then
-      begin
-        DrawBox(i, j, 0, 0, 0, 170, 40, 40);
-      end;
-    end;
-  end;
+        DrawBox(i, j, 0, 0, 0, 170, 40, 40)
+      else
+        DrawBox(i, j, 30, 30, 30, 0, 0, 0);
 
+  { Draw moving boxes }
   for i := 0 to 4 do
-  begin
     for j := 0 to 4 do
-    begin
       if (FGame.GetCurrentPiece().Blocks[i, j] <> 0) and FGame.GetBoard().IsOnBoard(i + FGame.GetCurrentX(), j + FGame.GetCurrentY()) then
-      begin
         DrawBox(i + FGame.GetCurrentX(), j + FGame.GetCurrentY(), 0, 0, 0, 0, 255, 0);
-      end;
-    end;
-  end;
 
+  { Render it to window! }
   SDL_RenderPresent(FSDLRenderer);
 end;
 
@@ -146,6 +149,7 @@ begin
 
   while FRunning do
   begin
+    { While running check for events (key downs, ups) and send them to Game }
     while SDL_PollEvent(FSDLEvent) = 1 do
     begin
       case FSDLEvent^.type_ of
@@ -170,13 +174,18 @@ begin
             SDLK_s: FGame.Move(FastEnd);
           end;
         end;
+        SDL_QUITEV:
+          FRunning := false;
       end;
     end;
 
+    { Say the game that it should update }
     FGame.Update(SDL_GetTicks());
 
+    { Draw the game (separated from the game logic) }
     Draw();
 
+    { Wait for 32 ms... should achieve around 30 fpx }
     SDL_Delay(32);
   end;
 end;

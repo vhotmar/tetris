@@ -11,8 +11,15 @@ type
 
 type TTetrisBlocks = array [0..6, 0..3] of TTetrisBlock;
 
+{ All types of tetris blocks represented as 5x5 matrix
+  with all rotations and initial offset of the block
+  (when the block first appears on top)
+
+  1 - normal block
+  2 - origin }
 const CTetrisBlocks: TTetrisBlocks = (
   (
+    { Squares }
     (
       InitialOffset: (-2, -3);
       Blocks: (
@@ -55,6 +62,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { I }
     (
       InitialOffset: (-2, -2);
       Blocks: (
@@ -97,6 +105,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { L }
     (
       InitialOffset: (-2,-3);
       Blocks: (
@@ -139,6 +148,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { Reverse L }
     (
       InitialOffset: (-2,-3);
       Blocks: (
@@ -181,6 +191,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { N }
     (
       InitialOffset: (-2,-3);
       Blocks: (
@@ -223,6 +234,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { Reverse N }
     (
       InitialOffset: (-2,-3);
       Blocks: (
@@ -265,6 +277,7 @@ const CTetrisBlocks: TTetrisBlocks = (
     )
   ),
   (
+    { T }
     (
       InitialOffset: (-2,-3);
       Blocks: (

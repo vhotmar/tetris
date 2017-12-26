@@ -12,21 +12,46 @@ type
   public
     constructor Create(width, height: integer);
 
+    { Is game over? (is there some block in first row?) }
     function IsOver(): boolean;
+
+    { Are these coordinates on board? (they shouldn't be negative and within range) }
     function IsOnBoard(x, y: integer): boolean; overload;
+
+    { Are these coordinates on board? (they shouldn't be negative and within range), but we ignore blocks on top }
     function IsOnBoard(x, y: integer; checkTop: boolean): boolean; overload;
+
+    { Is line of "y" filled fully with blocks? }
     function IsLineFilled(y: integer): boolean;
+
+    { Check if we can fit matrix where non-negative values are blocks on x, y coordinates on board }
     function CanPlaceShape(x, y: integer; shape: TIntShape): boolean;
+
+    { Get value from board on x, y coordinates }
     function GetValue(x, y: integer): integer;
+
+    { Is empty on x, y coordinates. There is flag to check if it has to be on board }
     function IsEmpty(x, y: integer; hasToBeOnBoard: boolean): boolean;
 
+    { Clear the board with 0s }
     procedure Clear;
+
+    { Fill the borad with "value" }
     procedure FillBoard(value: integer);
+
+    { Fill line with "value" }
     procedure FillLine(y, value: integer);
+
+    { Fill shape represented by matrix (where non negative numbers represents blocks) by "value" on x, y }
     procedure FillShape(x, y, value: integer; shape: TIntShape);
+
+    { Delete line and move all lines above down }
     procedure DeleteLine(y: integer);
+
+    { Go through all lines and delete all possible lines }
     procedure DeletePossibleLines();
 
+    { Print this board to console }
     procedure Print();
   end;
 
@@ -37,8 +62,10 @@ begin
   FWidth := width;
   FHeight := height;
 
+  { Dynamic multi-dimensional array }
   SetLength(FBoard, width, height);
 
+  { Start with empty board }
   FillBoard(0);
 end;
 
@@ -77,9 +104,11 @@ begin
   begin
     for j := 0 to toJ do
     begin
+      { If it is out of bounds and there is some block we can not place it }
       if (not IsOnBoard(x + i, y + j, false)) and (shape[i, j] <> 0) then
         exit(false);
       
+      { If is shape on board and it collides with another block we can not place it }
       if ((y + j) >= 0) and (shape[i, j] <> 0) and (not IsEmpty(x + i, y + j, false)) then
         exit(false);
     end;
@@ -136,6 +165,7 @@ end;
 procedure TBoard.DeleteLine(y: integer);
 var i, j: integer;
 begin
+  { Move lines up }
   for i := y downto 1 do
     for j := 0 to (FWidth - 1) do
       FBoard[j, i] := FBoard[j, i - 1];

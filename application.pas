@@ -1,6 +1,7 @@
 program Tetris;
 uses TetrisWindow, TetrisConfig, SysUtils;
- 
+
+{ Helper for debugging exceptions }
 procedure DumpExceptionCallStack(E: Exception);
 var
   I: Integer;
@@ -18,7 +19,7 @@ begin
   for I := 0 to ExceptFrameCount - 1 do
     Report := Report + LineEnding + BackTraceStrFunc(Frames[I]);
   writeln(Report);
-  Halt; // End of program execution
+  Halt;
 end;
 
 var
@@ -26,12 +27,14 @@ var
   con: TConfig;
 
 begin
+  { Initialize window and config }
   win := TSDLWindow.Create;
   con := TConfig.Create(25, 50, 500, 800, 200);
 
   win.Init(con);
   
   try
+    { Run application }
     win.Run;
   except
     on E: Exception do 

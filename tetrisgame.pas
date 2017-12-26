@@ -12,16 +12,25 @@ type
     FLastTime: integer;
     FFast: boolean;
     FBoard: TBoard;
-    FEndLine, FEndType: integer;
     FCurrentPieceId, FCurrentPieceRotation, FCurrentX, FCurrentY: integer;
+    { When game ends use these variables to reset the board }
+    FEndLine, FEndType: integer;
 
+    { Check if there is place for the piece and if it is move it there }
     procedure MovePieceIfPossible(x, y, pieceId, pieceRotation: integer);
+
+    { Create new piece }
     procedure CreateNewPiece;
+
+    { Store the moving piece to board and generate new }
     function EndMove(): boolean;
   public
     constructor Create(config: TConfig; time: integer);
 
+    { Updating functions }
     procedure Move(m: TMove);
+
+    { Ticking function }
     function Update(time: integer): boolean;
 
     function GetCurrentPiece(): TTetrisBlock;
@@ -37,6 +46,7 @@ implementation
 
 constructor TGame.Create(config: TConfig; time: integer);
 begin
+  { Randomize so we get random values everytime }
   randomize;
 
   FConfig := config;
@@ -45,8 +55,10 @@ begin
   FEndLine := FConfig.Height - 1;
   FEndType := 1;
 
+  { On the beginning create new piece }
   CreateNewPiece();
 
+  { And clear board }
   FBoard := TBoard.Create(FConfig.Width, FConfig.Height);
   FBoard.Clear();
 end;
@@ -72,11 +84,15 @@ end;
 
 function TGame.EndMove(): boolean;
 begin
+  { On the end we store the block }
   FBoard.FillShape(FCurrentX, FCurrentY, 1, GetCurrentPiece().Blocks);
+  { Check if it completes some lines }
   FBoard.DeletePossibleLines();
 
+  { Or the game can be over }
   if FBoard.IsOver() then exit(true);
 
+  { If not create new piece }
   CreateNewPiece();
 
   exit(false);
@@ -86,6 +102,7 @@ procedure TGame.Move(m: TMove);
 begin
   if FBoard.IsOver then exit;
 
+  { If is not over handle different moves }
   case m of
     Rotate: MovePieceIfPossible(FCurrentX, FCurrentY, FCurrentPieceId, (FCurrentPieceRotation + 1) mod 4);
     Left: MovePieceIfPossible(FCurrentX - 1, FCurrentY, FCurrentPieceId, FCurrentPieceRotation);
@@ -96,6 +113,7 @@ begin
       FFast := false;
     Drop:
     begin
+      { On drop we move the block on the lowest possible position and store it there }
       while FBoard.CanPlaceShape(FCurrentX, FCurrentY, GetCurrentPiece().Blocks) do
         FCurrentY := FCurrentY + 1;
 
@@ -111,6 +129,7 @@ var waitingTime: integer;
 begin
   if FFast then waitingTime := FConfig.WaitingTime div 2 else waitingTime := FConfig.WaitingTime;
 
+  { If is game over clear board with "animation" and start over }
   if FBoard.IsOver() then
   begin
     FBoard.FillLine(FEndLine, FEndType);
@@ -126,10 +145,12 @@ begin
     exit(true);
   end;
 
+  { We wait for specified loop time (if we would not the game would be too fast) }
   if (time - FLastTime) > waitingTime then
   begin
     FLastTime := time;
 
+    { In this tick we move block downwards if we can / if we can not we store it and create new }
     if FBoard.CanPlaceShape(FCurrentX, FCurrentY + 1, GetCurrentPiece().Blocks) then
       FCurrentY := FCurrentY + 1
     else
