@@ -96,22 +96,22 @@ begin
   borderTop := yPosition - borderWidth; 
 
   // Left
-  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 255, 0, 255);
+  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 190, 0, 255);
   // Top
-  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderRight, borderTop + 5, 0, 255, 0, 255);
+  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderRight, borderTop + 5, 0, 190, 0, 255);
   // Bottom
-  boxRGBA(FSDLRenderer, borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 255, 0, 255);
+  boxRGBA(FSDLRenderer, borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 190, 0, 255);
   // Right
-  boxRGBA(FSDLRenderer, borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 255, 0, 255);
+  boxRGBA(FSDLRenderer, borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 190, 0, 255);
 
   for i := 0 to (FConfig.Width - 1) do
   begin
     for j := 0 to (FConfig.Height - 1) do
     begin
       DrawBox(i, j, 30, 30, 30, 0, 0, 0);
-      if FGame.IsEmpty(i, j) then
+      if FGame.GetBoard().IsEmpty(i, j, true) then
       begin
-        DrawBox(i, j, 0, 0, 0, 255, 0, 0);
+        DrawBox(i, j, 0, 0, 0, 170, 40, 40);
       end;
     end;
   end;
@@ -120,7 +120,7 @@ begin
   begin
     for j := 0 to 4 do
     begin
-      if (FGame.GetCurrentPiece().Blocks[i, j] <> 0) and FGame.IsOnBoard(i + FGame.GetCurrentX(), j + FGame.GetCurrentY()) then
+      if (FGame.GetCurrentPiece().Blocks[i, j] <> 0) and FGame.GetBoard().IsOnBoard(i + FGame.GetCurrentX(), j + FGame.GetCurrentY()) then
       begin
         DrawBox(i + FGame.GetCurrentX(), j + FGame.GetCurrentY(), 0, 0, 0, 0, 255, 0);
       end;
@@ -173,9 +173,11 @@ begin
       end;
     end;
 
-    FRunning := not FGame.Update(SDL_GetTicks());
+    FGame.Update(SDL_GetTicks());
 
     Draw();
+
+    SDL_Delay(32);
   end;
 end;
 

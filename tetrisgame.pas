@@ -12,6 +12,7 @@ type
     FLastTime: integer;
     FFast: boolean;
     FBoard: TBoard;
+    FEndLine, FEndType: integer;
     FCurrentPieceId, FCurrentPieceRotation, FCurrentX, FCurrentY: integer;
 
     procedure MovePieceIfPossible(x, y, pieceId, pieceRotation: integer);
@@ -28,9 +29,7 @@ type
     function GetCurrentPieceRotation(): integer;
     function GetCurrentX(): integer;
     function GetCurrentY(): integer;
-
-    function IsOnBoard(x, y: integer): boolean;
-    function IsEmpty(x, y: integer): boolean;
+    function GetBoard(): TBoard;
     
   end;
 
@@ -43,6 +42,8 @@ begin
   FConfig := config;
   FFast := false;
   FLastTime := time;
+  FEndLine := FConfig.Height - 1;
+  FEndType := 1;
 
   CreateNewPiece();
 
@@ -83,6 +84,8 @@ end;
 
 procedure TGame.Move(m: TMove);
 begin
+  if FBoard.IsOver then exit;
+
   case m of
     Rotate: MovePieceIfPossible(FCurrentX, FCurrentY, FCurrentPieceId, (FCurrentPieceRotation + 1) mod 4);
     Left: MovePieceIfPossible(FCurrentX - 1, FCurrentY, FCurrentPieceId, FCurrentPieceRotation);
@@ -107,6 +110,21 @@ function TGame.Update(time: integer): boolean;
 var waitingTime: integer;
 begin
   if FFast then waitingTime := FConfig.WaitingTime div 2 else waitingTime := FConfig.WaitingTime;
+
+  if FBoard.IsOver() then
+  begin
+    FBoard.FillLine(FEndLine, FEndType);
+
+    FEndLine := FEndLine - 1;
+
+    if FEndLine < 0 then
+    begin
+      FEndLine := FConfig.Height - 1;
+      FEndType := (FEndType + 1) mod 2;
+    end;
+
+    exit(true);
+  end;
 
   if (time - FLastTime) > waitingTime then
   begin
@@ -141,14 +159,9 @@ begin
   GetCurrentY := FCurrentY;
 end;
 
-function TGame.IsOnBoard(x, y: integer): boolean;
+function TGame.GetBoard(): TBoard;
 begin
-  IsOnBoard := FBoard.IsOnBoard(x, y);
-end;
-
-function TGame.IsEmpty(x, y: integer): boolean;
-begin
-  IsEmpty := FBoard.IsEmpty(x, y, true);
+  GetBoard := FBoard;
 end;
 
 function TGame.GetCurrentPiece(): TTetrisBlock;

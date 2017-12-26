@@ -22,6 +22,7 @@ type
 
     procedure Clear;
     procedure FillBoard(value: integer);
+    procedure FillLine(y, value: integer);
     procedure FillShape(x, y, value: integer; shape: TIntShape);
     procedure DeleteLine(y: integer);
     procedure DeletePossibleLines();
@@ -103,6 +104,13 @@ begin
   for i := 0 to (FWidth - 1) do
     for j := 0 to (FHeight - 1) do
       FBoard[i, j] := value;
+end;
+
+procedure TBoard.FillLine(y, value: integer);
+var i: integer;
+begin
+  for i := 0 to (FWidth - 1) do
+    FBoard[i, y] := value;
 end;
 
 procedure TBoard.FillShape(x, y, value: integer; shape: TIntShape);
