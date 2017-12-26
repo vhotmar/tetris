@@ -149,23 +149,23 @@ begin
         begin
           case sdlEvent^.key.keysym.sym of
             SDLK_ESCAPE: Running := false;
-            SDLK_a: Game.Update(Left, SDL_GetTicks());
-            SDLK_d: Game.Update(Right, SDL_GetTicks());
-            SDLK_s: Game.Update(FastStart, SDL_GetTicks());
-            SDLK_z: Game.Update(Rotate, SDL_GetTicks());
-            SDLK_x: Game.Update(Drop, SDL_GetTicks());
+            SDLK_a: Running := not Game.Update(Left, SDL_GetTicks());
+            SDLK_d: Running := not Game.Update(Right, SDL_GetTicks());
+            SDLK_s: Running := not Game.Update(FastStart, SDL_GetTicks());
+            SDLK_z: Running := not Game.Update(Rotate, SDL_GetTicks());
+            SDLK_x: Running := not Game.Update(Drop, SDL_GetTicks());
           end;
         end;
         SDL_KEYUP:
         begin
           case sdlEvent^.key.keysym.sym of
-            SDLK_s: Game.Update(FastEnd, SDL_GetTicks());
+            SDLK_s: Running := not Game.Update(FastEnd, SDL_GetTicks());
           end;
         end;
       end;
     end;
 
-    Game.Update(GameTick, SDL_GetTicks());
+    Running := not Game.Update(GameTick, SDL_GetTicks());
 
     Draw();
   end;

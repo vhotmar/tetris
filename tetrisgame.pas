@@ -67,7 +67,7 @@ begin
   begin
     for j := 0 to 4 do
     begin
-      if ((x + i) < Config.Width) and ((y + j) < Config.Height) and (CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0) then
+      if ((x + i) < Config.Width) and ((x + i >= 0)) and ((y + j) < Config.Height) and ((y + j >= 0)) and (CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0) then
         Board[x + i, y + j] := true;
     end;
   end;
@@ -88,8 +88,14 @@ begin
 end;
 
 function TGame.IsOver(): boolean;
+var i: integer;
 begin
-  exit(IsLineFilled(0));
+  for i := 0 to (Config.Width - 1) do
+  begin
+    if Board[i, 0] then exit(true);
+  end;
+
+  exit(false);
 end;
 
 procedure TGame.DeleteLine(y: integer);
