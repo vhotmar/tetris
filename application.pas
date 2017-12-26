@@ -27,7 +27,7 @@ var
 
 begin
   win := TSDLWindow.Create;
-  con := TConfig.Create(10, 20, 500, 800, 200);
+  con := TConfig.Create(25, 50, 500, 800, 200);
 
   win.Init(con);
   
@@ -37,6 +37,4 @@ begin
     on E: Exception do 
       DumpExceptionCallStack(E);
   end;
-
-  writeln('hi');
 end.

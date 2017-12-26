@@ -1,233 +1,159 @@
 unit TetrisGame;
 interface
 
-uses TetrisConfig, TetrisBlocks;
+uses TetrisConfig, TetrisBlocks, TetrisBoard;
 
-type TMove = (Rotate, Drop, Left, Right, FastStart, FastEnd, GameTick);
+type TMove = (Rotate, Drop, Left, Right, FastStart, FastEnd);
 
 type
   TGame = class
   private
-    Config: TConfig;
-    LastTime: integer;
-    Fast: boolean;
+    FConfig: TConfig;
+    FLastTime: integer;
+    FFast: boolean;
+    FBoard: TBoard;
+    FCurrentPieceId, FCurrentPieceRotation, FCurrentX, FCurrentY: integer;
 
-    procedure FillBlock(x, y, pieceId, pieceRotation: integer);
-    procedure DeleteLine(y: integer);
-    procedure ClearBoard;
-    procedure DeletePossible;
-
-    function IsOver: boolean;
-    function IsLineFilled(y: integer): boolean;
-    function CanMove(x, y, pieceId, pieceRotation: integer): boolean;
-    procedure MoveIfPossible(x, y, pieceId, pieceRotation: integer);
-    procedure Print;
-    procedure CreateNew;
+    procedure MovePieceIfPossible(x, y, pieceId, pieceRotation: integer);
+    procedure CreateNewPiece;
+    function EndMove(): boolean;
   public
-    Board: array of array of boolean;
-    CurrentPieceId, CurrentPieceRotation, CurrentX, CurrentY: integer;
-    
-    constructor Create(c: TConfig; time: integer);
+    constructor Create(config: TConfig; time: integer);
 
-    function Update(m: TMove; time: integer): boolean;
+    procedure Move(m: TMove);
+    function Update(time: integer): boolean;
+
+    function GetCurrentPiece(): TTetrisBlock;
+    function GetCurrentPieceId(): integer;
+    function GetCurrentPieceRotation(): integer;
+    function GetCurrentX(): integer;
+    function GetCurrentY(): integer;
+
+    function IsOnBoard(x, y: integer): boolean;
+    function IsEmpty(x, y: integer): boolean;
+    
   end;
 
 implementation
 
-constructor TGame.Create(c: TConfig; time: integer);
+constructor TGame.Create(config: TConfig; time: integer);
 begin
   randomize;
 
-  Config := c;
-  Fast := false;
-  LastTime := time;
+  FConfig := config;
+  FFast := false;
+  FLastTime := time;
 
-  CreateNew;
+  CreateNewPiece();
 
-  setlength(Board, Config.Width, Config.Height);
-  ClearBoard;
+  FBoard := TBoard.Create(FConfig.Width, FConfig.Height);
+  FBoard.Clear();
 end;
 
-procedure TGame.ClearBoard;
-var i, j: integer;
+procedure TGame.MovePieceIfPossible(x, y, pieceId, pieceRotation: integer);
 begin
-  for i := 0 to (Config.Width - 1) do
+  if FBoard.CanPlaceShape(x, y, CTetrisBlocks[pieceId, pieceRotation].Blocks) then
   begin
-    for j := 0 to (Config.Height - 1) do
-    begin
-      Board[i, j] := false;
-    end;
+    FCurrentX := x;
+    FCurrentY := y;
+    FCurrentPieceId := pieceId;
+    FCurrentPieceRotation := pieceRotation;
   end;
 end;
 
-procedure TGame.FillBlock(x, y, pieceId, pieceRotation: integer);
-var i, j: integer;
+procedure TGame.CreateNewPiece();
 begin
-  for i := 0 to 4 do
-  begin
-    for j := 0 to 4 do
-    begin
-      if ((x + i) < Config.Width) and ((x + i >= 0)) and ((y + j) < Config.Height) and ((y + j >= 0)) and (CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0) then
-        Board[x + i, y + j] := true;
-    end;
-  end;
+  FCurrentPieceId := random(7);
+  FCurrentPieceRotation := random(4);
+  FCurrentX := (FConfig.Width div 2) + GetCurrentPiece().InitialOffset[0];
+  FCurrentY := GetCurrentPiece().InitialOffset[1];
 end;
 
-procedure TGame.Print();
-var i, j: integer;
+function TGame.EndMove(): boolean;
 begin
-  for j := 0 to (Config.Height - 1) do
-  begin
-    for i := 0 to (Config.Width - 1) do
-    begin
-      if Board[i, j] then write('1') else write('0');
-    end;
+  FBoard.FillShape(FCurrentX, FCurrentY, 1, GetCurrentPiece().Blocks);
+  FBoard.DeletePossibleLines();
 
-    writeln();
-  end;
-end;
+  if FBoard.IsOver() then exit(true);
 
-function TGame.IsOver(): boolean;
-var i: integer;
-begin
-  for i := 0 to (Config.Width - 1) do
-  begin
-    if Board[i, 0] then exit(true);
-  end;
+  CreateNewPiece();
 
   exit(false);
 end;
 
-procedure TGame.DeleteLine(y: integer);
-var i, j: integer;
-begin
-  for i := y downto 1 do
-  begin
-    for j := 0 to (Config.Width - 1) do
-    begin
-      Board[j, i] := Board[j, i - 1];
-    end;
-  end;
-end;
-
-function TGame.IsLineFilled(y: integer): boolean;
-var i: integer;
-begin
-  for i := 0 to (Config.Width - 1) do
-  begin
-    if not Board[i, y] then exit(false);
-  end;
-
-  exit(true);
-end;
-
-procedure TGame.DeletePossible;
-var i: integer;
-begin
-  for i := 0 to (Config.Height - 1) do
-  begin
-    if IsLineFilled(i) then DeleteLine(i);
-  end;
-end;
-
-function TGame.CanMove(x, y, pieceId, pieceRotation: integer): boolean;
-var i, j: integer;
-begin
-  for i := 0 to 4 do
-  begin
-    for j := 0 to 4 do
-    begin
-      if ((x + i) < 0) or ((x + i) > (Config.Width - 1)) or ((y + j) > (Config.Height - 1)) then
-      begin
-        if CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0 then
-        begin
-          exit(false);
-        end;
-      end;
-
-      if (y + j) >= 0 then
-      begin
-        if (CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0) and Board[x + i, y + j] then
-        begin
-          exit(false);
-        end;
-      end;
-    end;
-  end;
-
-  exit(true);
-end;
-
-procedure TGame.MoveIfPossible(x, y, pieceId, pieceRotation: integer);
-begin
-  if CanMove(x, y, pieceId, pieceRotation) then
-  begin
-    CurrentX := x;
-    CurrentY := y;
-    CurrentPieceId := pieceId;
-    CurrentPieceRotation := pieceRotation;
-  end;
-end;
-
-procedure TGame.CreateNew();
-begin
-  CurrentPieceId := random(7);
-  CurrentPieceRotation := random(4);
-  CurrentX := (Config.Width div 2) + CTetrisBlocks[CurrentPieceId, CurrentPieceRotation].InitialOffset[0];
-  CurrentY := CTetrisBlocks[CurrentPieceId, CurrentPieceRotation].InitialOffset[1];
-end;
-
-function TGame.Update(m: TMove; time: integer): boolean;
-var loopTime: integer;
+procedure TGame.Move(m: TMove);
 begin
   case m of
-    Rotate: MoveIfPossible(CurrentX, CurrentY, CurrentPieceId, (CurrentPieceRotation + 1) mod 4);
-    Left: MoveIfPossible(CurrentX - 1, CurrentY, CurrentPieceId, CurrentPieceRotation);
-    Right: MoveIfPossible(CurrentX + 1, CurrentY, CurrentPieceId, CurrentPieceRotation);
+    Rotate: MovePieceIfPossible(FCurrentX, FCurrentY, FCurrentPieceId, (FCurrentPieceRotation + 1) mod 4);
+    Left: MovePieceIfPossible(FCurrentX - 1, FCurrentY, FCurrentPieceId, FCurrentPieceRotation);
+    Right: MovePieceIfPossible(FCurrentX + 1, FCurrentY, FCurrentPieceId, FCurrentPieceRotation);
     FastStart:
-      Fast := true;
+      FFast := true;
     FastEnd:
-      Fast := false;
+      FFast := false;
     Drop:
     begin
-      while CanMove(CurrentX, CurrentY, CurrentPieceId, CurrentPieceRotation) do
-      begin
-        CurrentY := CurrentY + 1;
-      end;
+      while FBoard.CanPlaceShape(FCurrentX, FCurrentY, GetCurrentPiece().Blocks) do
+        FCurrentY := FCurrentY + 1;
 
-      FillBlock(CurrentX, CurrentY - 1, CurrentPieceId, CurrentPieceRotation);
+      FCurrentY := FCurrentY - 1;
 
-      DeletePossible();
-
-      if IsOver() then exit(true);
-
-      CreateNew();
+      EndMove();
     end;
-  end;
+  end;  
+end;
 
-  if Fast then loopTime := Config.WaitingTime div 2 else loopTime := Config.WaitingTime;
+function TGame.Update(time: integer): boolean;
+var waitingTime: integer;
+begin
+  if FFast then waitingTime := FConfig.WaitingTime div 2 else waitingTime := FConfig.WaitingTime;
 
-
-  if (time - LastTime) > loopTime then
+  if (time - FLastTime) > waitingTime then
   begin
-    LastTime := time;
+    FLastTime := time;
 
-    if CanMove(CurrentX, CurrentY + 1, CurrentPieceId, CurrentPieceRotation) then
-    begin
-      CurrentY := CurrentY + 1;
-    end
+    if FBoard.CanPlaceShape(FCurrentX, FCurrentY + 1, GetCurrentPiece().Blocks) then
+      FCurrentY := FCurrentY + 1
     else
-    begin
-      FillBlock(CurrentX, CurrentY, CurrentPieceId, CurrentPieceRotation);
-      DeletePossible();
-
-      if IsOver() then exit(true);
-
-      CreateNew();
-    end;
+      exit(EndMove());
   end;
 
   exit(false);
+end;
+
+function TGame.GetCurrentPieceId(): integer;
+begin
+  GetCurrentPieceId := FCurrentPieceId;
+end;
+
+function TGame.GetCurrentPieceRotation(): integer;
+begin
+  GetCurrentPieceRotation := FCurrentPieceRotation;
+end;
+
+function TGame.GetCurrentX(): integer;
+begin
+  GetCurrentX := FCurrentX;
+end;
+
+function TGame.GetCurrentY(): integer;
+begin
+  GetCurrentY := FCurrentY;
+end;
+
+function TGame.IsOnBoard(x, y: integer): boolean;
+begin
+  IsOnBoard := FBoard.IsOnBoard(x, y);
+end;
+
+function TGame.IsEmpty(x, y: integer): boolean;
+begin
+  IsEmpty := FBoard.IsEmpty(x, y, true);
+end;
+
+function TGame.GetCurrentPiece(): TTetrisBlock;
+begin
+  GetCurrentPiece := CTetrisBlocks[FCurrentPieceId, FCurrentPieceRotation];
 end;
 
 end.

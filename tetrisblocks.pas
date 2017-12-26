@@ -1,6 +1,8 @@
 unit TetrisBlocks;
 interface
 
+uses TetrisBoard;
+
 type
   TTetrisBlock = record
     InitialOffset: array [0..1] of integer;
