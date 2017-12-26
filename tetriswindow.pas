@@ -67,6 +67,13 @@ end;
 
 procedure TSDLWindow.Draw();
 var boxSize, totalWidth, xPosition, yPosition, i, j: integer;
+
+procedure DrawBox(x, y, r1, g1, b1, r2, g2, b2: integer);
+begin
+  boxRGBA(SDLRenderer, xPosition + x * boxSize, yPosition + y * boxSize, xPosition + (x + 1) * boxSize, yPosition + (y + 1) * boxSize, r1, g1, b1, 255);
+  boxRGBA(SDLRenderer, 2 + xPosition + x * boxSize, 2 + yPosition + y * boxSize, xPosition - 2 + (x + 1) * boxSize, yPosition - 2 + (y + 1) * boxSize, r2, g2, b2, 255);
+end;
+
 begin
   SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
   SDL_RenderClear(SDLRenderer);
@@ -89,9 +96,10 @@ begin
   begin
     for j := 0 to (Config.Height - 1) do
     begin
+      DrawBox(i, j, 30, 30, 30, 0, 0, 0);
       if Game.Board[i, j] then
       begin
-        boxRGBA(SDLRenderer, xPosition + i * boxSize, yPosition + j * boxSize, xPosition + (i + 1) * boxSize, yPosition + (j + 1) * boxSize, 255, 0, 0, 255);
+        DrawBox(i, j, 0, 0, 0, 255, 0, 0);
       end;
     end;
   end;
@@ -102,7 +110,7 @@ begin
     begin
       if CTetrisBlocks[Game.CurrentPieceId, Game.CurrentPieceRotation].Blocks[i, j] <> 0 then
       begin
-        boxRGBA(SDLRenderer, xPosition + (i + Game.CurrentX) * boxSize, yPosition + (j + Game.CurrentY) * boxSize, xPosition + (i + Game.CurrentX + 1) * boxSize, yPosition + (j + Game.CurrentY + 1) * boxSize, 0, 0, 255, 255);
+        DrawBox(i + Game.CurrentX, j + Game.CurrentY, 0, 0, 0, 0, 255, 0);
       end;
     end;
   end;

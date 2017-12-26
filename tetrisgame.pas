@@ -67,8 +67,8 @@ begin
   begin
     for j := 0 to 4 do
     begin
-      if ((x + i) < Config.Width) and ((y + j) < Config.Height) then
-        Board[x + i, y + j] := CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0;
+      if ((x + i) < Config.Width) and ((y + j) < Config.Height) and (CTetrisBlocks[pieceId, pieceRotation].Blocks[i, j] <> 0) then
+        Board[x + i, y + j] := true;
     end;
   end;
 end;
@@ -95,7 +95,6 @@ end;
 procedure TGame.DeleteLine(y: integer);
 var i, j: integer;
 begin
-  writeln('delete line ', y);
   for i := y downto 1 do
   begin
     for j := 0 to (Config.Width - 1) do
@@ -213,12 +212,7 @@ begin
     end
     else
     begin
-      Print();
-      writeln('------');
       FillBlock(CurrentX, CurrentY, CurrentPieceId, CurrentPieceRotation);
-      Print();
-      writeln('------');
-
       DeletePossible();
 
       if IsOver() then exit(true);
