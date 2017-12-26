@@ -66,7 +66,7 @@ end;
 
 
 procedure TSDLWindow.Draw();
-var boxSize, totalWidth, xPosition, yPosition, i, j: integer;
+var boxSize, totalWidth, totalHeight, xPosition, yPosition, borderLeft, borderRight, borderBottom, borderTop, borderWidth, i, j: integer;
 
 procedure DrawBox(x, y, r1, g1, b1, r2, g2, b2: integer);
 begin
@@ -78,19 +78,27 @@ begin
   SDL_SetRenderDrawColor(SDLRenderer, 0, 0, 0, 255);
   SDL_RenderClear(SDLRenderer);
 
+  borderWidth := 5;
+
   boxSize := (Config.WindowHeight - 40) div Config.Height;
   totalWidth := boxSize * Config.Width;
+  totalHeight := boxSize * Config.Height;
   xPosition := (Config.WindowWidth - totalWidth) div 2;
   yPosition := 10;
 
+  borderLeft := xPosition - borderWidth;
+  borderRight := xPosition + totalWidth + borderWidth;
+  borderBottom := yPosition + totalHeight + borderWidth;
+  borderTop := yPosition - borderWidth; 
+
   // Left
-  boxRGBA(SDLRenderer, xPosition - 5, 5, xPosition, Config.WindowHeight - 5, 0, 255, 0, 255);
+  boxRGBA(SDLRenderer, borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 255, 0, 255);
   // Top
-  boxRGBA(SDLRenderer, xPosition, 5, xPosition + totalWidth, 10, 0, 255, 0, 255);
+  boxRGBA(SDLRenderer, borderLeft, borderTop, borderRight, borderTop + 5, 0, 255, 0, 255);
   // Bottom
-  boxRGBA(SDLRenderer, xPosition, Config.WindowHeight - 10, xPosition + totalWidth, Config.WindowHeight - 5, 0, 255, 0, 255);
+  boxRGBA(SDLRenderer, borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 255, 0, 255);
   // Right
-  boxRGBA(SDLRenderer, xPosition + totalWidth, 5, xPosition + totalWidth + 5, Config.WindowHeight - 5, 0, 255, 0, 255);
+  boxRGBA(SDLRenderer, borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 255, 0, 255);
 
   for i := 0 to (Config.Width - 1) do
   begin
