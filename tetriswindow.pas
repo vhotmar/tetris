@@ -78,16 +78,32 @@ end;
 
 
 procedure TSDLWindow.Draw();
-var boxSize, totalWidth, totalHeight, xPosition, yPosition, borderLeft, borderRight, borderBottom, borderTop, borderWidth, i, j: integer;
+var
+  boxSize, totalWidth, totalHeight, xPosition, yPosition, borderLeft, borderRight, borderBottom, borderTop, borderWidth, i, j: integer;
+  sdlRectangle: PSDL_Rect;
+
+procedure DrawRectangle(x1, y1, x2, y2, r, g, b: integer);
+begin
+  sdlRectangle^.x := x1;
+  sdlRectangle^.y := y1;
+  sdlRectangle^.w := x2 - x1;
+  sdlRectangle^.h := y2 - y1;
+
+  SDL_SetRenderDrawColor(FSDLRenderer, r, g, b, 255);
+  SDL_RenderFillRect(FSDLRenderer, sdlRectangle);
+end;
 
 { Function to draw box with border rgb1 is for border, rgb2 is for background }
 procedure DrawBox(x, y, r1, g1, b1, r2, g2, b2: integer);
+var sdlRectangle: PSDL_Rect;
 begin
-  boxRGBA(FSDLRenderer, xPosition + x * boxSize, yPosition + y * boxSize, xPosition + (x + 1) * boxSize, yPosition + (y + 1) * boxSize, r1, g1, b1, 255);
-  boxRGBA(FSDLRenderer, 2 + xPosition + x * boxSize, 2 + yPosition + y * boxSize, xPosition - 2 + (x + 1) * boxSize, yPosition - 2 + (y + 1) * boxSize, r2, g2, b2, 255);
+  DrawRectangle(xPosition + x * boxSize, yPosition + y * boxSize, xPosition + (x + 1) * boxSize, yPosition + (y + 1) * boxSize, r1, g1, b1);
+  DrawRectangle(2 + xPosition + x * boxSize, 2 + yPosition + y * boxSize, xPosition - 2 + (x + 1) * boxSize, yPosition - 2 + (y + 1) * boxSize, r2, g2, b2);
 end;
 
 begin
+  new(sdlRectangle);
+
   SDL_SetRenderDrawColor(FSDLRenderer, 0, 0, 0, 255);
   SDL_RenderClear(FSDLRenderer);
 
@@ -107,13 +123,13 @@ begin
 
   { Draw borders }
   { Left }
-  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 190, 0, 255);
+  DrawRectangle(borderLeft, borderTop, borderLeft + borderWidth, borderBottom, 0, 190, 0);
   { Top }
-  boxRGBA(FSDLRenderer, borderLeft, borderTop, borderRight, borderTop + 5, 0, 190, 0, 255);
+  DrawRectangle(borderLeft, borderTop, borderRight, borderTop + 5, 0, 190, 0);
   { Bottom }
-  boxRGBA(FSDLRenderer, borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 190, 0, 255);
+  DrawRectangle(borderLeft, borderBottom - borderWidth, borderRight, borderBottom, 0, 190, 0);
   {  }
-  boxRGBA(FSDLRenderer, borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 190, 0, 255);
+  DrawRectangle(borderRight - borderWidth, borderTop, borderRight, borderBottom, 0, 190, 0);
 
   { Draw grid and filled blocks }
   for i := 0 to (FConfig.Width - 1) do
@@ -131,6 +147,8 @@ begin
 
   { Render it to window! }
   SDL_RenderPresent(FSDLRenderer);
+
+  dispose(sdlRectangle);
 end;
 
 destructor TSDLWindow.Destroy;
